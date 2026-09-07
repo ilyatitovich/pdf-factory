@@ -28,3 +28,4 @@ public/wasm_exec.js
 *.njsproj
 *.sln
 *.sw?
+*.txt

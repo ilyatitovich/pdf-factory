@@ -1,9 +1,15 @@
 <script lang="ts">
   import { job } from '../lib/stores/job'
 
-  const pct = $derived(
-    $job.total > 0 ? Math.round(($job.current / $job.total) * 100) : 0,
-  )
+  const labels: Record<string, string> = {
+    'loading-wasm': 'Loading',
+    parsing: 'Parsing PDF',
+    splitting: 'Splitting',
+    done: 'Done',
+  }
+
+  const label = $derived(labels[$job.stage] ?? ($job.stage || $job.status))
+  const isIndeterminate = $derived($job.status === 'running' && $job.total === 0)
 </script>
 
 {#if $job.status === 'running' || $job.status === 'done' || $job.status === 'error'}
@@ -12,12 +18,16 @@
       <p class="error">{$job.error ?? 'Something went wrong'}</p>
     {:else}
       <p>
-        {$job.stage || $job.status}
+        {label}
         {#if $job.total > 0}
           — {$job.current}/{$job.total}
         {/if}
       </p>
-      <progress max="100" value={pct}></progress>
+      {#if isIndeterminate}
+        <progress></progress>
+      {:else}
+        <progress max={$job.total || 1} value={$job.current}></progress>
+      {/if}
     {/if}
   </div>
 {/if}

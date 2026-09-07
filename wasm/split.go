@@ -46,7 +46,7 @@ func split(_ js.Value, args []js.Value) any {
 	}
 
 	total := len(spans)
-	out := js.Global().Get("Array").New(total)
+	progressFn.Invoke(0, total)
 	for i, ps := range spans {
 		data, err := io.ReadAll(ps.Reader)
 		if err != nil {
@@ -56,8 +56,7 @@ func split(_ js.Value, args []js.Value) any {
 		obj.Set("from", ps.From)
 		obj.Set("thru", ps.Thru)
 		obj.Set("bytes", uint8ArrayFromBytes(data))
-		out.SetIndex(i, obj)
-		progressFn.Invoke(i+1, total)
+		progressFn.Invoke(i+1, total, obj)
 	}
-	return out
+	return js.Undefined()
 }

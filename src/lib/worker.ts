@@ -16,8 +16,20 @@ interface PdfSpan {
 type PdfSplit = (
   data: Uint8Array,
   span: number,
-  onProgress: (current: number, total: number) => void,
-) => PdfSpan[]
+  onProgress: (current: number, total: number, part?: PdfSpan) => void,
+) => void
+
+function postFile(jobId: string, span: PdfSpan): void {
+  const bytes = span.bytes.buffer.slice(
+    span.bytes.byteOffset,
+    span.bytes.byteOffset + span.bytes.byteLength,
+  ) as ArrayBuffer
+  const name =
+    span.from === span.thru
+      ? `page-${span.from}.pdf`
+      : `pages-${span.from}-${span.thru}.pdf`
+  post({ type: 'file', jobId, name, bytes }, [bytes])
+}
 
 function post(msg: WorkerToMain, transfer: Transferable[] = []): void {
   self.postMessage(msg, transfer)
@@ -73,7 +85,8 @@ self.onmessage = async (event: MessageEvent<MainToWorker>) => {
       stage: 'parsing',
     })
 
-    const spans = pdfSplit(new Uint8Array(msg.pdf), msg.span, (current, total) => {
+    pdfSplit(new Uint8Array(msg.pdf), msg.span, (current, total, part) => {
+      if (part) postFile(msg.jobId, part)
       post({
         type: 'progress',
         jobId: msg.jobId,
@@ -82,18 +95,6 @@ self.onmessage = async (event: MessageEvent<MainToWorker>) => {
         stage: 'splitting',
       })
     })
-
-    for (const span of spans) {
-      const bytes = span.bytes.buffer.slice(
-        span.bytes.byteOffset,
-        span.bytes.byteOffset + span.bytes.byteLength,
-      ) as ArrayBuffer
-      const name =
-        span.from === span.thru
-          ? `page-${span.from}.pdf`
-          : `pages-${span.from}-${span.thru}.pdf`
-      post({ type: 'file', jobId: msg.jobId, name, bytes }, [bytes])
-    }
 
     post({ type: 'done', jobId: msg.jobId })
   } catch (err) {
