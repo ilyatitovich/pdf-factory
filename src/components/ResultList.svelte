@@ -1,8 +1,9 @@
 <script lang="ts">
   import { get } from 'svelte/store'
   import { createWindowVirtualizer } from '@tanstack/svelte-virtual'
-  import { files, type SplitFile } from '../lib/stores/job'
+  import { files, job, type SplitFile } from '../lib/stores/job'
   import { getCachedPreview, renderFirstPage } from '../lib/pdfPreview'
+  import { downloadZip } from '../lib/utils/download'
   import PageLightbox from './PageLightbox.svelte'
 
   const CELL_W = 160
@@ -15,6 +16,7 @@
   let clientWidth = $state(0)
   let scrollMargin = $state(0)
   let openIndex = $state<number | null>(null)
+  let zipping = $state(false)
 
   const cols = $derived(Math.max(1, Math.floor(clientWidth / CELL_W)))
   const list = $derived($files)
@@ -88,9 +90,25 @@
       },
     }
   }
+
+  async function downloadAll(): Promise<void> {
+    if (zipping || list.length === 0) return
+    zipping = true
+    try {
+      const base = $job.fileName.replace(/\.pdf$/i, '') || 'pages'
+      await downloadZip(`${base}.zip`, list)
+    } finally {
+      zipping = false
+    }
+  }
 </script>
 
 {#if list.length > 0}
+  <div class="toolbar">
+    <button type="button" class="zip" disabled={zipping} onclick={downloadAll}>
+      {zipping ? 'Preparing ZIP…' : `Download all (${list.length}) as ZIP`}
+    </button>
+  </div>
   <div class="list" bind:this={listEl} bind:clientWidth>
     <div class="inner" style:height="{$virtualizer.getTotalSize()}px">
       {#each $virtualizer.getVirtualItems() as item (item.key)}
@@ -131,8 +149,26 @@
 {/if}
 
 <style>
-  .list {
+  .toolbar {
     margin-block-start: 1rem;
+  }
+
+  .zip {
+    padding: 0.45rem 0.85rem;
+    border: 1px solid #888;
+    border-radius: 0.35rem;
+    background: #fff;
+    font: inherit;
+    cursor: pointer;
+  }
+
+  .zip:disabled {
+    opacity: 0.6;
+    cursor: wait;
+  }
+
+  .list {
+    margin-block-start: 0.75rem;
   }
 
   .inner {
