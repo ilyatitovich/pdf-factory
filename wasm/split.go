@@ -25,7 +25,7 @@ func pageCount(_ js.Value, args []js.Value) any {
 		panic("pdfPageCount: expected Uint8Array")
 	}
 	rs := bytes.NewReader(copyBytes(args[0]))
-	n, err := api.PageCount(rs, nil)
+	n, err := api.PageCount(rs, api.LoadConfiguration())
 	if err != nil {
 		panic(err.Error())
 	}
@@ -40,7 +40,7 @@ func split(_ js.Value, args []js.Value) any {
 	progressFn := args[2]
 	rs := bytes.NewReader(copyBytes(args[0]))
 
-	spans, err := api.SplitRaw(rs, span, nil)
+	spans, err := api.SplitRaw(rs, span, api.LoadConfiguration())
 	if err != nil {
 		panic(err.Error())
 	}
