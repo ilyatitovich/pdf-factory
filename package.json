@@ -1,0 +1,27 @@
+{
+  "name": "pdf-factory",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "packageManager": "pnpm@11.13.0",
+  "scripts": {
+    "dev": "vite",
+    "build:wasm": "cp \"$(go env GOROOT)/lib/wasm/wasm_exec.js\" public/wasm_exec.js && GOOS=js GOARCH=wasm go -C wasm build -ldflags=\"-s -w\" -o ../public/pdf.wasm .",
+    "prebuild": "pnpm build:wasm",
+    "build": "vite build",
+    "preview": "vite preview",
+    "check": "svelte-check --tsconfig ./tsconfig.app.json && tsc -p tsconfig.node.json"
+  },
+  "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "^7.3.0",
+    "@tsconfig/svelte": "^5.0.8",
+    "@types/node": "^24.13.3",
+    "svelte": "^5.56.10",
+    "svelte-check": "^4.7.6",
+    "typescript": "~6.0.2",
+    "vite": "^8.2.2"
+  },
+  "dependencies": {
+    "nanostores": "^1.0.1"
+  }
+}
