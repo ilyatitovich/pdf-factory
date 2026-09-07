@@ -1,5 +1,6 @@
 import { atom, map } from 'nanostores'
 import { notifyIfHidden, requestPermission } from '../notifications'
+import { clearPreviewCache } from '../pdfPreview'
 import type { MainToWorker, WorkerToMain } from '../protocol'
 
 type JobStatus = 'idle' | 'running' | 'done' | 'error'
@@ -17,6 +18,8 @@ export const job = map({
 export interface SplitFile {
   name: string
   bytes: ArrayBuffer
+  from: number
+  thru: number
 }
 
 export const files = atom<SplitFile[]>([])
@@ -27,6 +30,7 @@ export function setSpan(span: number): void {
 }
 
 export function resetJob(): void {
+  clearPreviewCache()
   files.set([])
   job.set({
     status: 'idle',
@@ -55,7 +59,10 @@ function handleWorkerMessage(msg: WorkerToMain): void {
       job.setKey('total', msg.total)
       break
     case 'file':
-      files.set([...files.get(), { name: msg.name, bytes: msg.bytes }])
+      files.set([
+        ...files.get(),
+        { name: msg.name, bytes: msg.bytes, from: msg.from, thru: msg.thru },
+      ])
       break
     case 'done':
       job.setKey('status', 'done')

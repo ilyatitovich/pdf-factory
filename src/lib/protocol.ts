@@ -8,6 +8,6 @@ export type MainToWorker = {
 export type WorkerToMain =
   | { type: 'ready' }
   | { type: 'progress'; jobId: string; current: number; total: number; stage: string }
-  | { type: 'file'; jobId: string; name: string; bytes: ArrayBuffer }
+  | { type: 'file'; jobId: string; name: string; bytes: ArrayBuffer; from: number; thru: number }
   | { type: 'done'; jobId: string }
   | { type: 'error'; jobId: string; message: string }

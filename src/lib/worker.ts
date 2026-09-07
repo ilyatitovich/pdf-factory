@@ -28,7 +28,7 @@ function postFile(jobId: string, span: PdfSpan): void {
     span.from === span.thru
       ? `page-${span.from}.pdf`
       : `pages-${span.from}-${span.thru}.pdf`
-  post({ type: 'file', jobId, name, bytes }, [bytes])
+  post({ type: 'file', jobId, name, bytes, from: span.from, thru: span.thru }, [bytes])
 }
 
 function post(msg: WorkerToMain, transfer: Transferable[] = []): void {
