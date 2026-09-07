@@ -10,7 +10,7 @@
     step="1"
     value={$job.span}
     disabled={$job.status === 'running'}
-    oninput={(e) => setSpan(Number((e.currentTarget as HTMLInputElement).value))}
+    oninput={(e) => setSpan(Number(e.currentTarget.value))}
   />
 </label>
 

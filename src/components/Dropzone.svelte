@@ -1,11 +1,13 @@
 <script lang="ts">
   import { job, splitPdf } from '../lib/stores/job'
+  import { isPdf } from '../lib/utils/pdf'
 
   let isDragging = $state(false)
 
   function onFiles(fileList: FileList | null): void {
+    if ($job.status === 'running') return
     const file = fileList?.[0]
-    if (!file || file.type !== 'application/pdf') return
+    if (!file || !isPdf(file)) return
     void splitPdf(file)
   }
 </script>
@@ -16,14 +18,16 @@
   class:disabled={$job.status === 'running'}
   role="button"
   tabindex="0"
-  ondragover={(e) => {
+  aria-disabled={$job.status === 'running'}
+  ondragover={e => {
     e.preventDefault()
+    if ($job.status === 'running') return
     isDragging = true
   }}
   ondragleave={() => {
     isDragging = false
   }}
-  ondrop={(e) => {
+  ondrop={e => {
     e.preventDefault()
     isDragging = false
     onFiles(e.dataTransfer?.files ?? null)
@@ -32,11 +36,11 @@
     if ($job.status === 'running') return
     const input = document.createElement('input')
     input.type = 'file'
-    input.accept = 'application/pdf'
+    input.accept = '.pdf,application/pdf'
     input.onchange = () => onFiles(input.files)
     input.click()
   }}
-  onkeydown={(e) => {
+  onkeydown={e => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault()
       ;(e.currentTarget as HTMLElement).click()
@@ -44,7 +48,7 @@
   }}
 >
   {#if $job.status === 'running'}
-    Splitting…
+    Splitting{$job.fileName ? ` ${$job.fileName}` : ''}…
   {:else}
     Drop a PDF here, or click to choose
   {/if}

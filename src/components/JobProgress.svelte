@@ -11,7 +11,12 @@
     {#if $job.status === 'error'}
       <p class="error">{$job.error ?? 'Something went wrong'}</p>
     {:else}
-      <p>{$job.stage || $job.status}{#if $job.total > 0} — {$job.current}/{$job.total}{/if}</p>
+      <p>
+        {$job.stage || $job.status}
+        {#if $job.total > 0}
+          — {$job.current}/{$job.total}
+        {/if}
+      </p>
       <progress max="100" value={pct}></progress>
     {/if}
   </div>

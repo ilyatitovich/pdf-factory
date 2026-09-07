@@ -13,3 +13,20 @@
   <JobProgress />
   <ResultList />
 </main>
+
+<style>
+  main {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  h1 {
+    font-size: 1.75rem;
+  }
+
+  p {
+    color: #555;
+    margin-block-end: 0.5rem;
+  }
+</style>
