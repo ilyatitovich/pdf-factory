@@ -3,6 +3,8 @@ import workerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url'
 
 GlobalWorkerOptions.workerSrc = workerSrc
 
+const wasmUrl = `${import.meta.env.BASE_URL}pdfjs-wasm/`
+
 export const THUMB_WIDTH = 160
 export const FULL_WIDTH = 960
 const THUMB_LIMIT = 48
@@ -63,7 +65,7 @@ async function render(bytes: ArrayBuffer, width: number): Promise<string> {
   }
 
   // pdf.js may transfer `data` to its worker — keep the store's buffer intact
-  const loadingTask = getDocument({ data: bytes.slice(0) })
+  const loadingTask = getDocument({ data: bytes.slice(0), wasmUrl })
   try {
     const pdf = await loadingTask.promise
     const page = await pdf.getPage(1)

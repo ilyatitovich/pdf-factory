@@ -3,7 +3,7 @@
   import { createWindowVirtualizer } from '@tanstack/svelte-virtual'
   import { files, job, type SplitFile } from '../lib/stores/job'
   import { getCachedPreview, renderFirstPage } from '../lib/pdfPreview'
-  import { downloadZip } from '../lib/utils/download'
+  import { downloadZip, downloadMergedPdf } from '../lib/utils/download'
   import PageLightbox from './PageLightbox.svelte'
 
   const CELL_W = 160
@@ -123,6 +123,11 @@
     return `${base}.zip`
   }
 
+  function mergedPdfName(): string {
+    const base = $job.fileName.replace(/\.pdf$/i, '') || 'merged-pages'
+    return `${base}.pdf`
+  }
+
   async function downloadAll(): Promise<void> {
     if (zipping || list.length === 0) return
     zipping = true
@@ -138,6 +143,26 @@
     zipping = true
     try {
       await downloadZip(zipName(), selectedFiles)
+    } finally {
+      zipping = false
+    }
+  }
+
+  async function mergeSelected(): Promise<void> {
+    if (zipping || selectedFiles.length === 0) return
+    zipping = true
+    try {
+      await downloadMergedPdf(mergedPdfName(), selectedFiles)
+    } finally {
+      zipping = false
+    }
+  }
+
+  async function mergeAll(): Promise<void> {
+    if (zipping || list.length === 0) return
+    zipping = true
+    try {
+      await downloadMergedPdf(mergedPdfName(), list)
     } finally {
       zipping = false
     }
@@ -162,6 +187,14 @@
       >
         {zipping ? 'Preparing ZIP…' : `Download selected (${selectedCount}) as ZIP`}
       </button>
+      <button
+        type="button"
+        class="tool"
+        disabled={zipping || selectedCount === 0}
+        onclick={mergeSelected}
+      >
+        {zipping ? 'Preparing PDF…' : `Merge and Download (${selectedCount})`}
+      </button>
     {:else}
       <button
         type="button"
@@ -174,6 +207,9 @@
       </button>
       <button type="button" class="tool" disabled={zipping} onclick={downloadAll}>
         {zipping ? 'Preparing ZIP…' : `Download all (${list.length}) as ZIP`}
+      </button>
+      <button type="button" class="tool" disabled={zipping} onclick={mergeAll}>
+        {zipping ? 'Preparing PDF…' : `Merge and Download (${list.length})`}
       </button>
     {/if}
   </div>
